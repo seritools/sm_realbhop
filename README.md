@@ -81,3 +81,21 @@ multiplied to once for every frame the player jumped too late:
 
 With the default settings, the player loses 2.5% of his velocity per frame,
 for example.
+
+A good config takes the tickrate, sv_airaccelerate and this cvar into account.
+
+
+Further config tips
+-------------
+
+To make the bhopping experience really good, please disable the stamina
+system in your config:
+
+`sv_staminajumpcost 0.0`
+
+`sv_staminalandcost 0.0`
+
+Furthermore activate the internal cvar sm_enablebunnyhopping with the
+help of the sm_cvar command:
+
+`sm_cvar sv_enablebunnyhopping 1`
