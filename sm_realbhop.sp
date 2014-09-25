@@ -32,7 +32,7 @@ public Plugin:myinfo =
     name = "RealBhop",
     author = "SeriTools",
     description = "SourceMod plugin that aims to recreate HL1/Quake-like bunnyhopping.",
-    version = "1.0",
+    version = "1.1",
     url = "https://github.com/SeriTools/sm_realbhop"
 }
 
