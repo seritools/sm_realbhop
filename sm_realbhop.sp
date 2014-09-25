@@ -1,5 +1,6 @@
 #include <sourcemod>
 #include <sdktools>
+#include <sdkhooks>
 
 #pragma semicolon 1
 
@@ -22,6 +23,9 @@ new MaxBhopFrames;
 
 new Handle:CvarFramePenalty;
 new Float:FramePenalty;
+
+
+new bool:PlayerInTriggerPush[MAXPLAYERS + 1];
 
 public Plugin:myinfo =
 {
@@ -53,6 +57,8 @@ public OnPluginStart()
     MaxBhopFrames = GetConVarInt(CvarMaxBhopFrames);
     FramePenalty = GetConVarFloat(CvarFramePenalty);
 
+    HookEvent("round_start", Event_OnRoundStart, EventHookMode_PostNoCopy);
+
     // set all values to sane defaults to prevent randomness
     for (new i = 0; i <= MaxClients; i++) {
         ResetValues(i);
@@ -61,6 +67,7 @@ public OnPluginStart()
 
 public OnClientPutInServer(client)
 {
+    // set array values to sane defaults
     ResetValues(client);
 }
 
@@ -68,7 +75,7 @@ public OnGameFrame()
 {
     if (PluginEnabled) {
         for (new i = 1; i <= MaxClients; i++) {
-            if(IsClientConnected(i) && !IsFakeClient(i) && IsClientInGame(i)) {
+            if(IsClientConnected(i) && !IsFakeClient(i) && IsClientInGame(i) && !PlayerInTriggerPush[i]) {
                 if(GetEntityFlags(i) & FL_ONGROUND) { // on ground
                     if (!PlayerOnGround[i]) { // first ground frame
 
@@ -117,7 +124,7 @@ public OnGameFrame()
                         // to have the last speed value of the frame _before_ landing,
                         // not of the landing frame itself, as the speed is already changed
                         // in that frame if the player lands on sloped surfaces in some
-                        // specific angles :/
+                        // angles :/
                         GetEntPropVector(i, Prop_Data, "m_vecVelocity", AirSpeed[i]);
                     }
                 }
@@ -137,14 +144,63 @@ ResetValues(client)
     AirSpeed[client][0] = 0.0;
     AirSpeed[client][1] = 0.0;
     AfterJumpFrame[client] = false;
+    PlayerInTriggerPush[client] = false;
 }
 
 public OnMaxBhopFramesChange(Handle:cvar, const String:oldVal[], const String:newVal[])
 {
-    MaxBhopFrames = StringToInt(newVal) - 1; // so we dont have to do FloorFrames[i] = 1 and (FloorFrames[i] - 1) * 1.0
+    // "-1" so we dont have to do FloorFrames[i] = 1 and (FloorFrames[i] - 1) * 1.0
+    MaxBhopFrames = StringToInt(newVal) - 1;
 }
 
 public OnFramePenaltyChange(Handle:cvar, const String:oldVal[], const String:newVal[])
 {
     FramePenalty = StringToFloat(newVal);
+}
+
+public OnMapStart()
+{
+    HookTriggerPushes();
+}
+
+public Event_OnRoundStart(Handle:event, const String:name[], bool:dontBroadcast)
+{
+    HookTriggerPushes();
+}
+
+HookTriggerPushes()
+{
+    // hook trigger_pushes to disable velocity calculation in these, allowing
+    // the push to be applied correctly
+    new index = -1;
+    while ((index = FindEntityByClassname2(index, "trigger_push")) != -1) {
+        SDKHook(index, SDKHook_StartTouch, Event_EntityOnStartTouch);
+        SDKHook(index, SDKHook_EndTouch, Event_EntityOnEndTouch);
+    }
+}
+
+FindEntityByClassname2(startEnt, const String:classname[])
+{
+    /* If startEnt isn't valid shifting it back to the nearest valid one */
+    while (startEnt > -1 && !IsValidEntity(startEnt)) startEnt--;
+    
+    return FindEntityByClassname(startEnt, classname);
+}
+
+public Event_EntityOnStartTouch(entity, client)
+{
+    if (client <= MAXPLAYERS
+        && IsValidEntity(client)
+        && IsClientInGame(client)) {
+        PlayerInTriggerPush[client] = true;
+    }
+}
+
+public Event_EntityOnEndTouch(entity, client)
+{
+    if (client <= MAXPLAYERS
+        && IsValidEntity(client)
+        && IsClientInGame(client)) {
+        PlayerInTriggerPush[client] = false;
+    }
 }
