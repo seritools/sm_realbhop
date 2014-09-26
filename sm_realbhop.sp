@@ -32,7 +32,7 @@ public Plugin:myinfo =
     name = "RealBhop",
     author = "SeriTools",
     description = "SourceMod plugin that aims to recreate HL1/Quake-like bunnyhopping.",
-    version = "1.1",
+    version = "1.1.1",
     url = "https://github.com/SeriTools/sm_realbhop"
 }
 
@@ -75,7 +75,7 @@ public OnGameFrame()
 {
     if (PluginEnabled) {
         for (new i = 1; i <= MaxClients; i++) {
-            if(IsClientConnected(i) && !IsFakeClient(i) && IsClientInGame(i) && !PlayerInTriggerPush[i]) {
+            if(IsClientConnected(i) && IsClientInGame(i) && !IsClientObserver(client) && !IsFakeClient(i) && !PlayerInTriggerPush[i]) {
                 if(GetEntityFlags(i) & FL_ONGROUND) { // on ground
                     if (!PlayerOnGround[i]) { // first ground frame
 
