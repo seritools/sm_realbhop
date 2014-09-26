@@ -75,7 +75,7 @@ public OnGameFrame()
 {
     if (PluginEnabled) {
         for (new i = 1; i <= MaxClients; i++) {
-            if(IsClientConnected(i) && IsClientInGame(i) && !IsClientObserver(client) && !IsFakeClient(i) && !PlayerInTriggerPush[i]) {
+            if(IsClientConnected(i) && !IsFakeClient(i) && IsClientInGame(i) && !IsClientObserver(i) && !PlayerInTriggerPush[i]) {
                 if(GetEntityFlags(i) & FL_ONGROUND) { // on ground
                     if (!PlayerOnGround[i]) { // first ground frame
 
